@@ -9,7 +9,7 @@
 #    cd /home/bcrowell/Documents/web/source && make && cd -
 # Update it on freshmeat.
 
-VERSION = 1.0
+VERSION = 1.1
 TARBALL = accelerando.tar.gz
 DIST_DIR = accelerando-$(VERSION)
 

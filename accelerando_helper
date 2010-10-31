@@ -31,11 +31,13 @@ our $play_command;
 # In some implementations of sh (e.g., the one on unslung NSLU2), this results in an error message that I can't seem to
 # handle by I/O redirection using 1> and 2>. So first try to detect if bash is available, and if so, use it.
 my $shell = (system("bash --version 1>/dev/null 2>/dev/null")==0) ? "bash" : "sh";
-if (system("$shell -c \"aplay --version 1>/dev/null 2>/dev/null\"")==0) {
-  $play_command = "aplay -q $wav_file 1>/dev/null 2>/dev/null &";
+my $bg = '&'; # As of Oct 2010, on recent versions of ubuntu, aplay delays for several seconds before exiting. This fixes that problem.
+my $aplay_exists = (system("$shell -c \"aplay --version 1>/dev/null 2>/dev/null\"")==0);
+if ($aplay_exists) {
+  $play_command = "aplay -q $wav_file 1>/dev/null 2>/dev/null $bg";
 }
 else {
-  $play_command = "madplay $mp3_file 1>/dev/null 2>/dev/null &";
+  $play_command = "madplay $mp3_file 1>/dev/null 2>/dev/null $bg";
 }
 
 # The following only really works if a child process isn't running. If it is, the child gets the signal,
@@ -234,9 +236,23 @@ BEGIN {
 
 sub text_to_speech {
   my $text = shift;
-  my $cmd = "echo '$text' |  festival --tts 1>/dev/null 2>/dev/null";
-  my $r= system($cmd);
-  #  if ($r!=0) {print "Return code $r from $cmd\n"}
+  my $cmd;
+
+  #$cmd = "echo '$text' |  festival --tts 1>/dev/null 2>/dev/null";  # sometimes fails with "Linux: can't open /dev/dsp"; need to tell festival to use alsa instead of dsp
+
+  my $scheme_commands = <<'SCHEME'
+;use ALSA
+(Parameter.set 'Audio_Method 'Audio_Command)
+(Parameter.set 'Audio_Command "aplay -q -c 1 -t raw -f s16 -r $SR $FILE")
+SCHEME
+."(SayText \"$text\")";
+  $scheme_commands =~ s/"/\\"/g;
+  $scheme_commands =~ s/\$/\\\$/g;
+
+  $cmd = "echo \"$scheme_commands\" | festival";
+
+  my $r = system($cmd);
+  #if ($r!=0) {print "Return code $r from $cmd\n"}
   return $r;
 }
 

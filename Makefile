@@ -17,10 +17,10 @@ DIST_DIR = accelerando-$(VERSION)
 INSTALL = cp
 INSTALL_DIR = mkdir -p
 BIN = /usr/bin
+OLD_BIN = /usr/local/bin
 # for platforms where install exists:
 #INSTALL = install
 #INSTALL_DIR = install -d
-# BIN = /usr/local/bin
 
 prefix = /usr
 MANDIR = $(prefix)/share/man/man1
@@ -30,8 +30,10 @@ install:
 	$(INSTALL) metronome_click.wav /usr/share/apps/accelerando/sounds
 	$(INSTALL) metronome_click.mp3 /usr/share/apps/accelerando/sounds
 	$(INSTALL) accelerando $(BIN)
-	$(INSTALL_DIR) $(BIN)/Accelerando/Words
 	$(INSTALL) accelerando_helper $(BIN)
+	rm -f $(OLD_BIN)/accelerando
+	rm -f $(OLD_BIN)/accelerando_helper
+	$(INSTALL_DIR) $(BIN)/Accelerando/Words
 	$(INSTALL) Accelerando/Words.pm $(BIN)/Accelerando
 	$(INSTALL) Accelerando/Words/*.pm $(BIN)/Accelerando/Words
 	chmod +rx $(BIN)/accelerando
